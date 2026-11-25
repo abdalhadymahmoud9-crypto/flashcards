@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08201f">
+<meta name="description" content="فلاش كاردز بالمراجعة المتباعدة: ضيف بطاقاتك وراجع اللي جه ميعاده بس.">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<title>بطاقات المراجعة</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root{--bg:#08201f;--line:rgba(110,231,183,.2);--accent:#6ee7b7;--text:#effcf6;--muted:#9cc7b9;--good:#6ee7b7;--bad:#ff9a8a}
+body::before{background:radial-gradient(900px 560px at 90% -10%,rgba(16,185,129,.35),transparent 60%),radial-gradient(800px 520px at -5% 25%,rgba(45,212,191,.16),transparent 60%),radial-gradient(700px 500px at 50% 115%,rgba(15,118,110,.45),transparent 60%)}
+.hero{display:flex;align-items:center;gap:16px;margin:6px 0 20px}
+.logo{width:56px;height:56px;border-radius:16px;box-shadow:0 10px 30px rgba(16,185,129,.4)}
+.hero h1{margin:0;font-size:2rem;line-height:1.2}.hero p{margin:2px 0 0;color:var(--muted)}
+.card{background:rgba(10,40,38,.7);border:1px solid var(--line)}
+button.primary{background:linear-gradient(135deg,#34d399,#0f9f86);color:#04201a}
+.tabs{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:rgba(0,0,0,.25);margin-bottom:16px}
+.tabs button{border:0;background:transparent;color:var(--muted);border-radius:999px;min-height:38px;padding:4px 18px}
+.tabs button.on{background:linear-gradient(135deg,#34d399,#0f9f86);color:#04201a}
+.stat b{background:linear-gradient(120deg,#fff,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.flash{min-height:230px;border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(160deg,rgba(52,211,153,.12),rgba(255,255,255,.03));font-size:1.8rem;gap:16px;cursor:pointer}
+.flash .side{font-size:.8rem;color:var(--muted)}
+.flash .ans{color:var(--accent);border-top:1px dashed var(--line);padding-top:14px;width:100%}
+.answers{display:flex;gap:10px;margin-top:14px}
+.answers button{flex:1;min-height:52px}
+.answers .yes{background:rgba(52,211,153,.18);border-color:var(--good);color:var(--good)}
+.answers .no{background:rgba(255,154,138,.12);border-color:var(--bad);color:var(--bad)}
+.boxes{display:flex;gap:6px;align-items:flex-end;height:70px}
+.boxes div{flex:1;background:linear-gradient(180deg,#34d399,#0f766e);border-radius:8px 8px 3px 3px;min-height:4px;position:relative}
+.boxes span{position:absolute;top:-20px;inset-inline:0;text-align:center;font-size:.8rem;color:var(--muted)}
+.boxlabels{display:flex;gap:6px;font-size:.78rem;color:var(--muted);margin-top:4px}.boxlabels i{flex:1;text-align:center;font-style:normal}
+.list{display:grid;gap:8px;margin-top:10px}
+.item{display:flex;gap:10px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+.item .t{flex:1;min-width:0}.item .t b{display:block}.item .t span{color:var(--muted);font-size:.9rem}
+.badge{font-size:.78rem;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--accent)}
+.item button{min-height:36px;padding:2px 12px}
+textarea{min-height:120px;resize:vertical}
+.pane[hidden]{display:none}
+.hint{color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero"><img class="logo" src="logo.svg" alt=""><div><h1>بطاقات المراجعة</h1><p>راجع اللي جه ميعاده بس، والباقي هيتأجل لوحده</p></div></header>
+
+<div class="grid" style="margin-bottom:16px">
+<div class="stat"><b id="s-due">0</b><span>مستحقة النهارده</span></div>
+<div class="stat"><b id="s-total">0</b><span>كل البطاقات</span></div>
+<div class="stat"><b id="s-streak">0</b><span>أيام متتالية</span></div>
+</div>
+
+<nav class="tabs" aria-label="الأقسام">
+<button id="tab-review" class="on">مراجعة</button><button id="tab-cards">البطاقات</button><button id="tab-add">إضافة</button>
+</nav>
+
+<section id="pane-review" class="pane card">
+<div id="review-empty" hidden>
+<h2>مفيش حاجة تتراجع دلوقتي</h2>
+<p class="muted" id="empty-note"></p>
+</div>
+<div id="review-live">
+<div class="hint" id="progress"></div>
+<div class="flash" id="flash" role="button" tabindex="0" aria-label="اضغط لإظهار الإجابة"><div class="side" id="side">السؤال</div><div id="front"></div><div class="ans" id="ans" hidden></div></div>
+<div class="answers" id="answers" hidden><button class="no" id="btn-no">مكنتش فاكرها</button><button class="yes" id="btn-yes">كنت فاكرها</button></div>
+<p class="hint">اضغط على البطاقة أو مسطرة لإظهار الإجابة. بعدها 1 = فاكرها، 2 = مش فاكرها.</p>
+</div>
+</section>
+
+<section id="pane-cards" class="pane card" hidden>
+<div class="row"><input type="search" id="q" placeholder="دوّر في البطاقات"><button id="export">تصدير CSV</button></div>
+<h2 style="margin-top:14px">توزيع البطاقات على الصناديق</h2>
+<div class="boxes" id="boxes"></div><div class="boxlabels"><i>١ يوم</i><i>٢ يوم</i><i>٤ أيام</i><i>٨ أيام</i><i>١٦ يوم</i></div>
+<div class="list" id="list"></div>
+</section>
+
+<section id="pane-add" class="pane card" hidden>
+<h2>بطاقة جديدة</h2>
+<div style="display:grid;gap:10px">
+<input type="text" id="f-front" placeholder="السؤال أو الكلمة">
+<input type="text" id="f-back" placeholder="الإجابة">
+<div class="row"><button class="primary" id="add">أضف البطاقة</button><span class="hint" id="add-msg"></span></div>
+</div>
+<h2 style="margin-top:22px">استيراد من ملف أو نص</h2>
+<p class="hint">كل سطر بطاقة: السؤال، الإجابة (فاصلة أو Tab). تقدر تلصق من Excel أو Google Sheets.</p>
+<textarea id="paste" placeholder="resilient,قادر على التعافي&#10;mitochondria,مصنع الطاقة في الخلية"></textarea>
+<div class="row" style="margin-top:8px"><button id="import">استيراد</button><input type="file" id="file" accept=".csv,.txt,.tsv" style="max-width:260px"><span class="hint" id="imp-msg"></span></div>
+<div class="row" style="margin-top:18px"><button id="sample">حمّل مجموعة كلمات إنجليزي للتجربة</button><button id="wipe" class="danger">مسح كل البطاقات</button></div>
+</section>
+<footer>البطاقات بتتحفظ في المتصفح بتاعك بس. <a href="https://github.com/abdalhadymahmoud9-crypto/flashcards">الكود على GitHub</a></footer>
+</main>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
